@@ -1,0 +1,144 @@
+import path from 'path';
+import express, { Express, NextFunction, Request, Response } from 'express';
+import cors from 'cors';
+import Sender from './sender';
+import Auth from './auth';
+import dotenv from 'dotenv';
+
+dotenv.config();
+
+export type SenderStatus = {
+  code: number,
+  status: string,
+  message: string
+}
+
+const sender = new Sender();
+const auth = new Auth();
+const app: Express = express();
+const router: express.Router = express.Router();
+
+app.use(express.json({ limit: '60mb' }));
+app.use(express.urlencoded({ limit: '60mb', extended: false, parameterLimit: 50000 }));
+app.use(express.static(path.join(process.cwd(), 'public')));
+
+app.use(cors({
+  origin: '*', 
+  optionsSuccessStatus: 200, 
+  methods: ["GET", "PUT", "POST", "DELETE"] 
+}));
+
+app.use((_req: Request, res: Response, next: NextFunction) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, X-XSRF-Token, Origin');
+  res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
+  next();
+});
+
+if (app.get('env') === 'development') {
+  app.use((err: any, req: Request, res: Response, next: NextFunction) => {
+    res.status(err.status || 500);
+    res.send({
+      message: err.message,
+      error: err,
+    });
+  });
+}
+
+app.use((err: any, req: Request, res: Response, next: NextFunction) => {
+  res.status(err.status || 500);
+  res.send({
+    message: err.message,
+    error: {},
+  });
+});
+
+
+app.get(`/`, async (req: Request, res: Response) => {
+  const validated = await auth.validate(req.headers.authorization)
+  if(!validated){
+    return res.status(403).send({
+      status: "Forbidden",
+      message: "Credentials wrong"
+    })
+  }
+
+  try{
+    return res.sendStatus(200)
+  } catch( error ){
+    return res.status(403).send({status: "error", message: error})
+  }
+})
+
+app.get('/status', async (req: Request, res: Response) => {
+  const validated = await auth.validate(req.headers.authorization)
+  if(!validated){
+    return res.status(403).send({
+      status: "Forbidden",
+      message: "Credentials wrong"
+    })
+  }
+
+  try{
+    return res.send({
+      qr: sender.qrCode,
+      connected: sender.isConnected
+    })
+  } catch( error ){
+    return res.sendStatus(500).json({
+      status: "error",
+      message: error
+    })
+  }
+})
+
+app.post('/send', async (req: Request, res: Response) => {
+  const validated = await auth.validate(req.headers.authorization)
+  if(!validated){
+    return res.status(403).send({
+      status: "Forbidden",
+      message: "Credentials wrong"
+    })
+  }
+
+  const { number, message } = req.body
+  let status = {} as SenderStatus
+
+  try{
+    const result = await sender.sendText(number, message) as any
+
+    if(!result.erro){
+      status = {
+        code: 200,
+        status: "success",
+        message: "Mensagem enviada com sucesso"
+      }
+    }else{
+      status = {
+        code: result.status,
+        status: "error",
+        message: result.text
+      }
+    }
+    
+    return res.status(status.code).send({
+      status: status.status,
+      message: status.message
+    })
+  } catch( error ){
+    return res.status(500).send({
+      status: "error",
+      message: error
+    })
+
+  }
+})
+
+app.use(router);
+
+const HOST_NAME = process.env.HOST_NAME || 'localhost';
+const HOST_NAME_PORT = process.env.HOST_NAME_PORT || 3000;
+
+app.listen(HOST_NAME_PORT, () => {
+  console.log(`Servidor Rodando ${HOST_NAME}:${HOST_NAME_PORT}`);
+});
