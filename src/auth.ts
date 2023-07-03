@@ -4,7 +4,6 @@ class Auth {
       return false
     }
 
-    
     const encoded = authorization.substring(6)
     const decoded = Buffer.from(encoded, 'base64').toString('ascii')
     const [user, pass] = decoded.split(':')
