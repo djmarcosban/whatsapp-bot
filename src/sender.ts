@@ -68,7 +68,7 @@ class Sender {
       {
         folderNameToken: 'tokens',
         mkdirFolderToken: '',
-        headless: true,
+        headless: 'new',
         devtools: false,
         debug: false,
         logQR: true,
