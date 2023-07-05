@@ -2,6 +2,9 @@
   "name": "api-whatsapp",
   "version": "1.0.0",
   "description": "",
+  "engines": {
+    "node": "18"
+  },
   "scripts": {
     "build": "rimraf ./build && tsc",
     "dev": "nodemon",
