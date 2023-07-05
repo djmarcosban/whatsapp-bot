@@ -5,8 +5,7 @@
   "scripts": {
     "build": "rimraf ./build && tsc",
     "dev": "nodemon",
-    "build:start": "npm-run build && node build/index.js",
-    "start": "nodemon -r dotenv/config src/app.ts"
+    "start": "node build/app.js"
   },
   "devDependencies": {
     "@types/cors": "^2.8.13",
