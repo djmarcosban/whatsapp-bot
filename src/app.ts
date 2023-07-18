@@ -4,6 +4,7 @@ import cors from 'cors';
 import Sender from './sender';
 import Auth from './auth';
 import dotenv from 'dotenv';
+import timeout from 'connect-timeout';
 
 dotenv.config();
 
@@ -92,8 +93,14 @@ app.get('/status', async (req: Request, res: Response) => {
   }
 })
 
-app.post('/send', async (req: Request, res: Response) => {
+
+function haltOnTimedout (req: Request, res: Response, next: any) {
+  if (!req.timedout) next()
+}
+
+app.post('/send', timeout('120s'), haltOnTimedout, async (req: Request, res: Response, next: any) => {
   const validated = await auth.validate(req.headers.authorization)
+
   if(!validated){
     return res.status(403).send({
       status: "Forbidden",
@@ -101,17 +108,17 @@ app.post('/send', async (req: Request, res: Response) => {
     })
   }
 
-  const { number, message } = req.body
+  const { numbers, message } = req.body
   let status = {} as SenderStatus
 
   try{
-    const result = await sender.sendText(number, message) as any
+    const result = await sender.sendText(numbers, message) as any
 
     if(!result.erro){
       status = {
         code: 200,
         status: "success",
-        message: "Mensagem enviada com sucesso"
+        message: "Mensagens enviadas com sucesso"
       }
     }else{
       status = {
@@ -121,6 +128,9 @@ app.post('/send', async (req: Request, res: Response) => {
       }
     }
     
+    if (status.status === "error") return next(status)
+    if (req.timedout) return
+
     return res.status(status.code).send({
       status: status.status,
       message: status.message
