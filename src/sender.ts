@@ -31,7 +31,7 @@ class Sender {
     if(!isValidPhoneNumber){
       throw new Error("this numbers is invalid")
     }
-    
+
     const uniqueNumbers = numbers.filter(
       (obj, index) =>
       numbers.findIndex((item) => item.number === obj.number) === index
@@ -81,6 +81,25 @@ class Sender {
 
     const start = (client: Whatsapp) => {
       this.client = client
+
+      client.onStateChange((state) => {
+        console.log('State changed: ', state);
+
+        if ('CONFLICT'.includes(state)) client.useHere();
+
+        if ('UNPAIRED'.includes(state)) console.log('logout');
+      });
+
+      let time = 0 as any;
+      client.onStreamChange((state) => {
+        console.log('State Connection Stream: ' + state);
+        clearTimeout(time);
+        if (state === 'DISCONNECTED' || state === 'SYNCING') {
+          time = setTimeout(() => {
+            client.close();
+          }, 80000);
+        }
+      });
     }
 
     create(
@@ -115,6 +134,9 @@ class Sender {
     .catch((erro) => {
       console.log(erro);
     });
+
+
+    
   }
 }
 
