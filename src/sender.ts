@@ -70,14 +70,15 @@ class Sender {
     }
 
     const status = (statusSession: string) => {
-      this.connected = statusSession;
-      // this.connected = [
-      //   "successChat",
-      //   "isLogged",
-      //   "qrReadSuccess",
-      //   "chatAvaiable",
-      //   "Authenticated"
-      // ].includes(statusSession)
+      // this.connected = statusSession;
+      this.connected = [
+        "successChat",
+        "isLogged",
+        "qrReadSuccess",
+        "deviceNotConnected",
+        "chatAvaiable",
+        "Authenticated"
+      ].includes(statusSession)
     }
 
     const start = (client: Whatsapp) => {
