@@ -83,7 +83,8 @@ app.get('/status', async (req: Request, res: Response) => {
   try{
     return res.send({
       qr: sender.qrCode,
-      connected: sender.isConnected
+      connected: sender.isConnected,
+      status: sender.getStatusSession
     })
   } catch( error ){
     return res.sendStatus(500).json({
