@@ -83,7 +83,7 @@ class Sender {
         "deviceNotConnected",
         "chatAvaiable",
         "Authenticated"
-      ].includes(statusSession) ? "Online" : ""
+      ].includes(statusSession)
     }
 
     const start = (client: Whatsapp) => {
