@@ -44,11 +44,13 @@ class Sender {
 
     try {
       for (const visitor of uniqueNumbers) {
-        let newMessage = `Olá ${visitor.name}, tudo bem?! ${message}`
         let newNumber = this.formatNumber(visitor.number)
+        let newMessage = message.replace("{nome}", visitor.name)
+
         await this.client.sendText(newNumber, newMessage)
-        console.log(newNumber)
-        await this.delay(650)
+        await this.delay(650)  
+
+        console.log(newMessage)
       }
 
       return {
