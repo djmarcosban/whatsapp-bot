@@ -13,10 +13,15 @@ export type N = {
 class Sender {
   private client: Whatsapp
   private connected: any
+  private statusSession: any
   private qr: QRCode
 
   get isConnected(): any {
     return this.connected
+  }
+
+  get getStatusSession(): any {
+    return this.statusSession
   }
 
   get qrCode(): QRCode {
@@ -70,7 +75,7 @@ class Sender {
     }
 
     const status = (statusSession: string) => {
-      // this.connected = statusSession;
+      this.statusSession = statusSession;
       this.connected = [
         "successChat",
         "isLogged",
@@ -78,7 +83,7 @@ class Sender {
         "deviceNotConnected",
         "chatAvaiable",
         "Authenticated"
-      ].includes(statusSession)
+      ].includes(statusSession) ? "Online" : ""
     }
 
     const start = (client: Whatsapp) => {
