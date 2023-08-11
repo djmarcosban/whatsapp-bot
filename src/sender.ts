@@ -32,6 +32,18 @@ class Sender {
     this.initialize('test')
   }
 
+  async getPicture(number: string) {
+    try {
+      let newNumber = this.formatNumber(number)
+      let result = await this.client.getProfilePicFromServer(newNumber);
+
+      return result
+
+    } catch (error) {
+      return error
+    }
+  }
+
   async sendText(numbers: Array<N>, message: string) {
     if(!isValidPhoneNumber){
       throw new Error("this numbers is invalid")

@@ -71,6 +71,7 @@ app.get(`/`, async (req: Request, res: Response) => {
   }
 })
 
+
 app.get('/status', async (req: Request, res: Response) => {
   const validated = await auth.validate(req.headers.authorization)
   if(!validated){
@@ -93,7 +94,6 @@ app.get('/status', async (req: Request, res: Response) => {
     })
   }
 })
-
 
 function haltOnTimedout (req: Request, res: Response, next: any) {
   if (!req.timedout) next()
@@ -143,6 +143,30 @@ app.post('/send', timeout('1200s'), haltOnTimedout, async (req: Request, res: Re
     })
 
   }
+})
+
+app.post('/photo', async (req: Request, res: Response) => {
+  const validated = await auth.validate(req.headers.authorization)
+  if(!validated){
+    return res.status(403).send({
+      status: "Forbidden",
+      message: "Credentials wrong"
+    })
+  }
+
+  const { number } = req.body
+  
+  try{
+    const result = await sender.getPicture(number) as any
+    return res.send({
+      url: result
+    })
+  } catch( error ){
+    return res.sendStatus(500).json({
+      status: "error",
+      message: error
+    })
+  } 
 })
 
 app.use(router);
