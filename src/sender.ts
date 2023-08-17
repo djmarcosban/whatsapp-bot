@@ -1,5 +1,9 @@
 import parsePhoneNumber, { isValidPhoneNumber } from 'libphonenumber-js';
 import { create, Whatsapp } from 'venom-bot';
+import Historic from './utils';
+import {setTimeout} from 'timers/promises';
+
+const historic = new Historic();
 
 export type QRCode = {
   base64Qr: string
@@ -32,37 +36,37 @@ class Sender {
     this.initialize('test')
   }
 
-  async getPicture(number: string) {
-    try {
-      let newNumber = this.formatNumber(number)
-      let result = await this.client.getProfilePicFromServer(newNumber);
-
-      return result
-
-    } catch (error) {
-      return error
-    }
-  }
-
-  async sendText(numbers: Array<N>, message: string) {
+  async sendMessage(numbers: Array<N>, message: string, image: string, message_id: number, event_id: number) {
     if(!isValidPhoneNumber){
       throw new Error("this numbers is invalid")
     }
 
-    const uniqueNumbers = numbers.filter(
-      (obj, index) =>
-      numbers.findIndex((item) => item.number === obj.number) === index
-    );
+    const uniqueNumbers = numbers.filter((obj, index) => numbers.findIndex((item) => item.number === obj.number) === index);  
 
     try {
       for (const visitor of uniqueNumbers) {
         let newNumber = this.formatNumber(visitor.number)
         let newMessage = message.replace("{nome}", visitor.name)
 
-        await this.client.sendText(newNumber, newMessage)
-        await this.delay(650)  
-
-        console.log(newMessage)
+        await this.client
+          .checkNumberStatus(newNumber)
+          .then(() => {
+            historic.update(message_id, event_id, visitor.number)
+              .then(() => {
+                if(image && image.length > 0){
+                  this.client.sendImageFromBase64(newNumber, image, "flyer", newMessage)
+                }else{
+                  this.client.sendText(newNumber, newMessage)
+                }
+                
+                console.log('Sent "' + newMessage + '" to ' + visitor.number)
+              }
+            )
+          })
+          .catch((error) => {
+            console.error(visitor.number + ' - ' + error.text);
+          }
+        );
       }
 
       return {
@@ -74,9 +78,17 @@ class Sender {
     }
   }
 
-  private delay(time: number) {
-    return new Promise(resolve => setTimeout(resolve, time));
-  } 
+  async getPicture(number: string) {
+    try {
+      let newNumber = this.formatNumber(number)
+      let result = await this.client.getProfilePicFromServer(newNumber);
+
+      return result
+
+    } catch (error) {
+      return error
+    }
+  }
 
   private formatNumber(number: string){
     let newNumber = parsePhoneNumber(number, "BR")?.format("E.164").replace("+", "") as string
@@ -116,9 +128,11 @@ class Sender {
         console.log('State Connection Stream: ' + state);
         clearTimeout(time);
         if (state === 'DISCONNECTED' || state === 'SYNCING') {
-          time = setTimeout(() => {
-            client.close();
-          }, 80000);
+          // time = setTimeout(() => {
+          //   client.close();
+          // }, 80000);
+          setTimeout(80000)
+          client.close();
         }
       });
     }

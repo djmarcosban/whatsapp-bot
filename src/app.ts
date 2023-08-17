@@ -84,8 +84,8 @@ app.get('/status', async (req: Request, res: Response) => {
   try{
     return res.send({
       qr: sender.qrCode,
+      status: sender.getStatusSession,
       connected: sender.isConnected,
-      status: sender.getStatusSession
     })
   } catch( error ){
     return res.sendStatus(500).json({
@@ -109,11 +109,18 @@ app.post('/send', timeout('1200s'), haltOnTimedout, async (req: Request, res: Re
     })
   }
 
-  const { numbers, message } = req.body
   let status = {} as SenderStatus
 
+  const { 
+    numbers,
+    message,
+    image,
+    message_id,
+    event_id
+  } = req.body
+
   try{
-    const result = await sender.sendText(numbers, message) as any
+    const result = await sender.sendMessage(numbers, message, image, message_id, event_id) as any
 
     if(!result.erro){
       status = {
