@@ -1,7 +1,6 @@
 import parsePhoneNumber, { isValidPhoneNumber } from 'libphonenumber-js';
 import { create, Whatsapp } from 'venom-bot';
 import Historic from './utils';
-import {setTimeout} from 'timers/promises';
 
 const historic = new Historic();
 
@@ -51,22 +50,22 @@ class Sender {
         await this.client
           .checkNumberStatus(newNumber)
           .then(() => {
+            
+            if(image && image.length > 0){
+              this.client.sendImageFromBase64(newNumber, image, "flyer", newMessage)
+            }else{
+              this.client.sendText(newNumber, newMessage)
+            }
+
+            console.log('Sent to ' + visitor.number)
             historic.update(message_id, event_id, visitor.number)
-              .then(() => {
-                if(image && image.length > 0){
-                  this.client.sendImageFromBase64(newNumber, image, "flyer", newMessage)
-                }else{
-                  this.client.sendText(newNumber, newMessage)
-                }
-                
-                console.log('Sent "' + newMessage + '" to ' + visitor.number)
-              }
-            )
           })
           .catch((error) => {
             console.error(visitor.number + ' - ' + error.text);
           }
         );
+
+        await this.delay(1000)
       }
 
       return {
@@ -76,6 +75,10 @@ class Sender {
     } catch (error) {
       return error
     }
+  }
+
+  private delay(time: number) {
+    return new Promise(resolve => setTimeout(resolve, time));
   }
 
   async getPicture(number: string) {
@@ -128,11 +131,9 @@ class Sender {
         console.log('State Connection Stream: ' + state);
         clearTimeout(time);
         if (state === 'DISCONNECTED' || state === 'SYNCING') {
-          // time = setTimeout(() => {
-          //   client.close();
-          // }, 80000);
-          setTimeout(80000)
-          client.close();
+          time = setTimeout(() => {
+            client.close();
+          }, 80000);
         }
       });
     }

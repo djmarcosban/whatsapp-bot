@@ -120,9 +120,9 @@ app.post('/send', timeout('1200s'), haltOnTimedout, async (req: Request, res: Re
   } = req.body
 
   try{
-    const result = await sender.sendMessage(numbers, message, image, message_id, event_id) as any
+    const send = await sender.sendMessage(numbers, message, image, message_id, event_id) as any
 
-    if(!result.erro){
+    if(!send.erro){
       status = {
         code: 200,
         status: "success",
@@ -130,9 +130,9 @@ app.post('/send', timeout('1200s'), haltOnTimedout, async (req: Request, res: Re
       }
     }else{
       status = {
-        code: result.status,
+        code: send.status,
         status: "error",
-        message: result.text
+        message: send.text
       }
     }
     
@@ -141,11 +141,12 @@ app.post('/send', timeout('1200s'), haltOnTimedout, async (req: Request, res: Re
 
     return res.status(status.code).send({
       status: status.status,
-      message: status.message
+      message: status
     })
   } catch( error ){
+    console.log(error)
     return res.status(500).send({
-      status: "error",
+      status: "error from try into app",
       message: error
     })
 
