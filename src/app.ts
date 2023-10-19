@@ -116,11 +116,12 @@ app.post('/send', timeout('1200s'), haltOnTimedout, async (req: Request, res: Re
     message,
     image,
     message_id,
-    event_id
+    event_id,
+    skip_historic
   } = req.body
 
   try{
-    const send = await sender.sendMessage(numbers, message, image, message_id, event_id) as any
+    const send = await sender.sendMessage(numbers, message, image, message_id, event_id, skip_historic) as any
 
     if(!send.erro){
       status = {
@@ -135,7 +136,7 @@ app.post('/send', timeout('1200s'), haltOnTimedout, async (req: Request, res: Re
         message: send.text
       }
     }
-    
+
     if (status.status === "error") return next(status)
     if (req.timedout) return
 
@@ -169,6 +170,28 @@ app.post('/photo', async (req: Request, res: Response) => {
     return res.send({
       url: result
     })
+  } catch( error ){
+    return res.sendStatus(500).json({
+      status: "error",
+      message: error
+    })
+  } 
+})
+
+app.get('/messages', async (req: Request, res: Response) => {
+  const validated = await auth.validate(req.headers.authorization)
+  if(!validated){
+    return res.status(403).send({
+      status: "Forbidden",
+      message: "Credentials wrong"
+    })
+  }
+
+  const { number } = req.body
+  
+  try{
+    const result = await sender.getAllMessagesInChat(number) as any
+    return res.send(result)
   } catch( error ){
     return res.sendStatus(500).json({
       status: "error",

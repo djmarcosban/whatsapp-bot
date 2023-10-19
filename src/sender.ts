@@ -35,10 +35,14 @@ class Sender {
     this.initialize('test')
   }
 
-  async sendMessage(numbers: Array<N>, message: string, image: string, message_id: number, event_id: number) {
+  async sendMessage(numbers: Array<N>, message: string, image: string, message_id: number, event_id: number, skip_historic: boolean) {
     if(!isValidPhoneNumber){
       throw new Error("this numbers is invalid")
     }
+
+    // return {
+    //   erro: false
+    // }
 
     const uniqueNumbers = numbers.filter((obj, index) => numbers.findIndex((item) => item.number === obj.number) === index);  
 
@@ -58,7 +62,10 @@ class Sender {
             }
 
             console.log('Sent to ' + visitor.number)
-            historic.update(message_id, event_id, visitor.number)
+
+            if(skip_historic == false){
+              historic.update(message_id, event_id, visitor.number)
+            }
           })
           .catch((error) => {
             console.error(visitor.number + ' - ' + error.text);
@@ -77,10 +84,6 @@ class Sender {
     }
   }
 
-  private delay(time: number) {
-    return new Promise(resolve => setTimeout(resolve, time));
-  }
-
   async getPicture(number: string) {
     try {
       let newNumber = this.formatNumber(number)
@@ -91,6 +94,29 @@ class Sender {
     } catch (error) {
       return error
     }
+  }
+
+  async getAllMessagesInChat(number: string) {
+    try {
+      let newNumber = this.formatNumber(number)
+
+      const numberExists = await this.client.checkNumberStatus(newNumber)
+
+      if(numberExists.numberExists){
+        const messages = await this.client.loadAndGetAllMessagesInChat(newNumber, true, true);
+        console.log(messages)
+        return messages
+      }
+
+      return 'nada';
+
+    } catch (error) {
+      return error
+    }
+  }
+
+  private delay(time: number) {
+    return new Promise(resolve => setTimeout(resolve, time));
   }
 
   private formatNumber(number: string){
