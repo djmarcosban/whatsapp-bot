@@ -7,7 +7,10 @@ class Historic {
 
     try {
       const response = await fetch(url)
-        .then(response => response.json())
+        .then((response) => {
+          console.log(response)
+          response.json()
+        })
         .then(data => console.log("Updating historic: ", data))
         .catch(error => console.log(error))
         .finally(() => {})

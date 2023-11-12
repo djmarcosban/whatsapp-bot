@@ -40,10 +40,6 @@ class Sender {
       throw new Error("this numbers is invalid")
     }
 
-    // return {
-    //   erro: false
-    // }
-
     const uniqueNumbers = numbers.filter((obj, index) => numbers.findIndex((item) => item.number === obj.number) === index);  
 
     try {
@@ -63,9 +59,9 @@ class Sender {
 
             console.log('Sent to ' + visitor.number)
 
-            if(skip_historic == false){
-              historic.update(message_id, event_id, visitor.number)
-            }
+            // if(skip_historic == false){
+            //   historic.update(message_id, event_id, visitor.number)
+            // }
           })
           .catch((error) => {
             console.error(visitor.number + ' - ' + error.text);
@@ -100,16 +96,12 @@ class Sender {
     try {
       let newNumber = this.formatNumber(number)
 
-      const numberExists = await this.client.checkNumberStatus(newNumber)
+      const checkNumber = this.client.checkNumberStatus(newNumber)
+      const getMessages = this.client.getAllMessagesInChat(newNumber, true, true)
+  
+      const result = await Promise.all([checkNumber, getMessages]);
 
-      if(numberExists.numberExists){
-        const messages = await this.client.loadAndGetAllMessagesInChat(newNumber, true, true);
-        console.log(messages)
-        return messages
-      }
-
-      return 'nada';
-
+      return result
     } catch (error) {
       return error
     }

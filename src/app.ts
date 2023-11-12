@@ -99,7 +99,7 @@ function haltOnTimedout (req: Request, res: Response, next: any) {
   if (!req.timedout) next()
 }
 
-app.post('/send', timeout('1200s'), haltOnTimedout, async (req: Request, res: Response, next: any) => {
+app.post('/send', timeout('1200s'), haltOnTimedout, async (req: Request, res: Response, next: any) => {''
   const validated = await auth.validate(req.headers.authorization)
 
   if(!validated){
