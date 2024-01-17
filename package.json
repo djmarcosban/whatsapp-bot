@@ -8,6 +8,7 @@
   "scripts": {
     "build": "rimraf ./build && tsc",
     "dev": "nodemon",
+    "prestart": "node build/fix-venom.js",
     "start": "node build/app.js"
   },
   "devDependencies": {
