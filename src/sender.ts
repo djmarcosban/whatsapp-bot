@@ -51,11 +51,11 @@ class Sender {
           .checkNumberStatus(newNumber)
           .then(() => {
             
-            // if(image && image.length > 0){
-            //   this.client.sendImageFromBase64(newNumber, image, "flyer", newMessage)
-            // }else{
-            //   this.client.sendText(newNumber, newMessage)
-            // }
+             if(image && image.length > 0){
+               this.client.sendImageFromBase64(newNumber, image, "flyer", newMessage)
+             }else{
+               this.client.sendText(newNumber, newMessage)
+             }
 
             console.log('Sent to ' + visitor.number)
 

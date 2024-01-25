@@ -29,6 +29,8 @@
     "dotenv": "^16.0.3",
     "express": "^4.18.2",
     "libphonenumber-js": "^1.10.37",
-    "venom-bot": "github:orkestral/venom"
+    "node-fetch": "^2.7.0",
+    "sharp": "^0.33.2",
+    "venom-bot": "^5.0.16"
   }
 }
