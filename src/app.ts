@@ -71,6 +71,49 @@ app.get(`/`, async (req: Request, res: Response) => {
   }
 })
 
+app.post('/restart', async (req: Request, res: Response) => {
+  const validated = await auth.validate(req.headers.authorization)
+  if(!validated){
+    return res.status(403).send({
+      status: "Forbidden",
+      message: "Credentials wrong"
+    })
+  }
+
+  try{
+    const result = await sender.restartService() as any
+    return res.send({
+      status: result
+    })
+  } catch( error ){
+    return res.sendStatus(500).json({
+      status: "error",
+      message: error
+    })
+  } 
+})
+
+app.post('/disconnect', async (req: Request, res: Response) => {
+  const validated = await auth.validate(req.headers.authorization)
+  if(!validated){
+    return res.status(403).send({
+      status: "Forbidden",
+      message: "Credentials wrong"
+    })
+  }
+
+  try{
+    const result = await sender.disconnectDevice() as any
+    return res.send({
+      status: result
+    })
+  } catch( error ){
+    return res.sendStatus(500).json({
+      status: "error",
+      message: error
+    })
+  } 
+})
 
 app.get('/status', async (req: Request, res: Response) => {
   const validated = await auth.validate(req.headers.authorization)
@@ -83,7 +126,6 @@ app.get('/status', async (req: Request, res: Response) => {
 
   try{
     return res.send({
-      qr: sender.qrCode,
       status: sender.getStatusSession,
       connected: sender.isConnected,
     })

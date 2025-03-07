@@ -31,6 +31,6 @@
     "libphonenumber-js": "^1.10.37",
     "node-fetch": "^2.7.0",
     "sharp": "^0.33.2",
-    "venom-bot": "^5.0.16"
+    "venom-bot": "github:orkestral/venom"
   }
 }

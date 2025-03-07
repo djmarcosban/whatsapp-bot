@@ -1,6 +1,7 @@
 import parsePhoneNumber, { isValidPhoneNumber } from 'libphonenumber-js';
 import { create, Whatsapp } from 'venom-bot';
 import Historic from './utils';
+import fs from 'fs';
 
 const historic = new Historic();
 
@@ -52,9 +53,9 @@ class Sender {
           .then(() => {
             
              if(image && image.length > 0){
-               this.client.sendImageFromBase64(newNumber, image, "flyer", newMessage)
+                this.client.sendImageFromBase64(newNumber, image, "flyer", newMessage)
              }else{
-               this.client.sendText(newNumber, newMessage)
+                this.client.sendText(newNumber, newMessage)
              }
 
             console.log('Sent to ' + visitor.number)
@@ -86,22 +87,42 @@ class Sender {
       let result = await this.client.getProfilePicFromServer(newNumber);
 
       return result
-
     } catch (error) {
       return error
     }
+  }
+
+  async restartService() {
+    try {
+      await this.client
+        .logout()
+        .then(() => {
+          this.initialize('test')
+        })
+        .catch((error) => {
+          console.error(error);
+        }
+      )
+    } catch (error) {
+      return error
+    }
+  }
+
+  async disconnectDevice() {
+    await this.client.logout()
   }
 
   async getAllMessagesInChat(number: string) {
     try {
       let newNumber = this.formatNumber(number)
 
-      const checkNumber = this.client.checkNumberStatus(newNumber)
-      const getMessages = this.client.getAllMessagesInChat(newNumber, true, true)
-  
-      const result = await Promise.all([checkNumber, getMessages]);
-
-      return result
+      await this.client
+        .checkNumberStatus(newNumber)
+        .then(async () => {
+          const messages = this.client.getAllMessagesInChat(newNumber, true, true)
+          return messages;
+        }
+      )  
     } catch (error) {
       return error
     }
@@ -119,6 +140,29 @@ class Sender {
   private initialize(nameSession: string) {
     const qr = (base64Qr: string) => {
       this.qr = { base64Qr }
+
+      let matches = base64Qr.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/) as any;
+      let response = {} as any;
+
+      if (matches.length !== 3) {
+        return new Error('Invalid input string');
+      }
+      response.type = matches[1];
+      response.data = Buffer.from(matches[2], 'base64');
+
+      // console.log(matches.input)
+
+      var imageBuffer = response;
+      require('fs').writeFile(
+        'out.png',
+        imageBuffer['data'],
+        'binary',
+        function (err: any) {
+          if (err != null) {
+            console.log(err);
+          }
+        }
+      );
     }
 
     const status = (statusSession: string) => {
@@ -127,7 +171,6 @@ class Sender {
         "successChat",
         "isLogged",
         "qrReadSuccess",
-        "deviceNotConnected",
         "chatAvaiable",
         "Authenticated"
       ].includes(statusSession)
